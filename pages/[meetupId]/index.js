@@ -11,7 +11,8 @@ function MeetupDetails(props) {
             <Head>
                 {/* <title>{props.meetupData.title}</title> */}
                 <title>Detalle</title>
-                <meta name="description" content={props.meetupData.description} />
+                {/* <meta name="description" content={props.meetupData.description} /> */}
+                <meta name="description" content="Esta es la description" />
             </Head>
             <MeetupDetail 
                 image={props.meetupData.image}
