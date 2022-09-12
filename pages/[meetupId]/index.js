@@ -1,31 +1,46 @@
-//import {Fragment} from 'react'
+import { MongoClient, ObjectId } from 'mongodb';
+
 import MeetupDetail from '../../components/meetups/MeetupDetail';
 
-function MeetupDetails() {
+function MeetupDetails(props) {
+    console.log('caca');
+    console.log(props);
     return (
         <MeetupDetail 
-            image='https://upload.wikimedia.org/wikipedia/commons/5/5c/Male_northern_cardinal_in_Central_Park_%2852612%29.jpg'
-            title='A First Meetup'
-            address='Some Street 5, 123132 Some City'
-            description='The meet description'/>
+            image={props.meetupData.image}
+            title={props.meetupData.title}
+            address={props.meetupData.address}
+            description={props.meetupData.description}
+        />
     );
 }
 
 export async function getStaticPaths() {
+    // fetch data from API
+    const client = await MongoClient.connect('mongodb+srv://admin:admin@cluster0.68hk6nu.mongodb.net/meetups?retryWrites=true&w=majority');
+    const db = client.db();
+
+    const meetupsCollection = db.collection('meetups');
+
+    const meetups = await meetupsCollection.find({}, { _id: 1 }).toArray();
+        
     return {
         fallback: true,
-        paths: [
-            {
-                params: {
-                    meetupId: 'm1',
-                },
-            },
-            {
-                params: {
-                    meetupId: 'm2',
-                },
-            },
-        ]
+        paths: meetups.map(meetup => ({
+            params: { meetupId: meetup._id.toString() }
+        }))
+        // [
+        //     {
+        //         params: {
+        //             meetupId: 'm1',
+        //         },
+        //     },
+        //     {
+        //         params: {
+        //             meetupId: 'm2',
+        //         },
+        //     },
+        // ]
     }
 }
 
@@ -34,17 +49,31 @@ export async function getStaticProps(context) {
 
     const meetupId = context.params.meetupId;
 
-    console.log(meetupId);
+    const client = await MongoClient.connect('mongodb+srv://admin:admin@cluster0.68hk6nu.mongodb.net/meetups?retryWrites=true&w=majority');
+    const db = client.db();
+
+    const meetupsCollection = db.collection('meetups');
+
+    const selectedMeetup = await meetupsCollection.findOne({_id: ObjectId(meetupId)});
+
+    console.log(selectedMeetup);
 
     return {
         props: {
-            meetupDate: {
-                id: meetupId,
-                image: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Male_northern_cardinal_in_Central_Park_%2852612%29.jpg',
-                title: 'A First Meetup',
-                address: 'Some Street 5, 123132 Some City',
-                description: 'The meet description'                
+            meetupData: {
+                id: selectedMeetup._id.toString(),
+                title: selectedMeetup.title,
+                image: selectedMeetup.image,
+                address: selectedMeetup.address,
+                description: selectedMeetup.description
             }
+            // {
+            //     id: meetupId,
+            //     image: selectedMeetup.image,
+            //     title: 'A First Meetup',
+            //     address: 'Some Street 5, 123132 Some City',
+            //     description: 'The meet description'                
+            // }
         }
     }
 }
